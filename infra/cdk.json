@@ -1,0 +1,15 @@
+{
+  "app": "python3 app.py",
+  "context": {
+    "providerKeyNames": ["DEEPSEEK_API_KEY", "DASHSCOPE_API_KEY"],
+    "publicAlb": "false",
+    "neptuneInstanceClass": "db.r6g.large",
+    "opensearchInstanceType": "r6g.large.search",
+    "opensearchDataNodes": 2,
+    "natGateways": 1,
+    "embeddingDim": 1024,
+    "rerankModel": "rerank",
+    "retainData": "true",
+    "@aws-cdk/aws-ec2:restrictDefaultSecurityGroup": true
+  }
+}

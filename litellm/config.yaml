@@ -1,0 +1,124 @@
+# =============================================================================
+# LiteLLM proxy — model routing for Graphiti agent memory (AWS China regions)
+# =============================================================================
+# The application only uses these aliases:
+#   graphiti-llm    Graphiti entity / edge extraction (structured JSON output)
+#   graphiti-small  Graphiti small-model calls (dedupe, summaries)
+#   agent-llm       The Strands chat agent (needs tool calling)
+#   embedding       Embeddings — output dim MUST equal EMBEDDING_DIM in the app
+#   rerank          Optional cross-encoder (/rerank); set RERANK_MODEL=rerank to use
+#
+# Re-point an alias to another provider by editing litellm_params only; the app does
+# not change. Secrets come from env vars injected by ECS from Secrets Manager.
+#
+# Default profile: DeepSeek (LLM) + Alibaba Cloud Model Studio / DashScope
+# (embedding + rerank, plus fallback LLM). Both are reachable from AWS China regions
+# through the VPC NAT gateway.
+# =============================================================================
+
+model_list:
+  # ---------------- LLM ----------------
+  - model_name: graphiti-llm
+    litellm_params:
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
+      max_tokens: 8192
+  - model_name: graphiti-llm            # same alias twice = load-balanced / failover group
+    litellm_params:
+      model: dashscope/qwen-plus
+      api_key: os.environ/DASHSCOPE_API_KEY
+    model_info:
+      id: graphiti-llm-qwen-fallback
+
+  - model_name: graphiti-small
+    litellm_params:
+      model: dashscope/qwen-flash
+      api_key: os.environ/DASHSCOPE_API_KEY
+
+  - model_name: agent-llm
+    litellm_params:
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
+
+  # ---------------- Embedding ----------------
+  # text-embedding-v4 supports a `dimensions` param; pin it so the vector size never drifts.
+  - model_name: embedding
+    litellm_params:
+      model: dashscope/text-embedding-v4
+      api_key: os.environ/DASHSCOPE_API_KEY
+      dimensions: 1024
+    model_info:
+      mode: embedding
+
+  # ---------------- Rerank (optional) ----------------
+  - model_name: rerank
+    litellm_params:
+      model: dashscope/qwen3-rerank
+      api_key: os.environ/DASHSCOPE_API_KEY
+    model_info:
+      mode: rerank
+
+  # ---------------------------------------------------------------------------
+  # Alternatives — uncomment and keep the SAME model_name to swap providers.
+  # ---------------------------------------------------------------------------
+  # SiliconFlow (OpenAI-compatible; hosts DeepSeek / Qwen / GLM / bge-m3 / bge-reranker)
+  # - model_name: graphiti-llm
+  #   litellm_params:
+  #     model: openai/deepseek-ai/DeepSeek-V3.2
+  #     api_base: https://api.siliconflow.cn/v1
+  #     api_key: os.environ/SILICONFLOW_API_KEY
+  # - model_name: embedding                      # 1024 dims
+  #   litellm_params:
+  #     model: openai/BAAI/bge-m3
+  #     api_base: https://api.siliconflow.cn/v1
+  #     api_key: os.environ/SILICONFLOW_API_KEY
+  # - model_name: rerank
+  #   litellm_params:
+  #     model: hosted_vllm/BAAI/bge-reranker-v2-m3   # POSTs {api_base}/rerank, Cohere shape
+  #     api_base: https://api.siliconflow.cn/v1
+  #     api_key: os.environ/SILICONFLOW_API_KEY
+  #
+  # Moonshot Kimi / Zhipu GLM / Volcengine Ark (Doubao)
+  # - model_name: agent-llm
+  #   litellm_params: { model: moonshot/kimi-k2-0905-preview, api_key: os.environ/MOONSHOT_API_KEY }
+  # - model_name: agent-llm
+  #   litellm_params: { model: zai/glm-4.6, api_key: os.environ/ZAI_API_KEY, api_base: https://open.bigmodel.cn/api/paas/v4 }
+  # - model_name: agent-llm
+  #   litellm_params: { model: volcengine/<endpoint-id>, api_key: os.environ/VOLCENGINE_API_KEY }
+  #
+  # Self-hosted in the SAME China region (data never leaves the AWS account):
+  # SageMaker endpoint (e.g. Qwen3 on vLLM/TGI, bge-m3 on TEI) — the LiteLLM task role
+  # needs sagemaker:InvokeEndpoint (the CDK stack grants it when sagemakerEndpointArns is set).
+  # - model_name: graphiti-llm
+  #   litellm_params:
+  #     model: sagemaker_chat/qwen3-32b-endpoint
+  #     aws_region_name: cn-northwest-1
+  # - model_name: embedding
+  #   litellm_params:
+  #     model: sagemaker/bge-m3-endpoint
+  #     aws_region_name: cn-northwest-1
+  # Or any vLLM / SGLang / Ollama server on EC2/EKS inside the VPC:
+  # - model_name: graphiti-llm
+  #   litellm_params: { model: hosted_vllm/Qwen/Qwen3-32B, api_base: http://10.0.12.34:8000/v1 }
+
+litellm_settings:
+  drop_params: true             # silently drop OpenAI params a provider doesn't support
+  num_retries: 3
+  request_timeout: 120
+  # Graphiti fires many concurrent extraction calls; let the proxy queue/retry on 429
+  retry_policy:
+    RateLimitErrorRetries: 5
+    TimeoutErrorRetries: 2
+
+router_settings:
+  routing_strategy: simple-shuffle
+  allowed_fails: 2
+  cooldown_time: 30
+  fallbacks:
+    - agent-llm: [graphiti-llm]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  # Virtual keys / spend tracking need Postgres (not created by this stack).
+  # Set DATABASE_URL or leave unset to run stateless.
+  # database_url: os.environ/DATABASE_URL

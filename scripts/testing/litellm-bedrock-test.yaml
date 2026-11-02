@@ -1,0 +1,17 @@
+# Test-only: same aliases backed by Bedrock in a GLOBAL region, used to verify the
+# app <-> gateway contract when no CN provider keys are at hand.
+model_list:
+  - model_name: graphiti-llm
+    litellm_params: { model: bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0, aws_region_name: us-east-1 }
+  - model_name: graphiti-small
+    litellm_params: { model: bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0, aws_region_name: us-east-1 }
+  - model_name: agent-llm
+    litellm_params: { model: bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0, aws_region_name: us-east-1 }
+  - model_name: embedding
+    litellm_params: { model: bedrock/amazon.titan-embed-text-v2:0, aws_region_name: us-east-1, dimensions: 1024 }
+    model_info: { mode: embedding }
+  - model_name: rerank
+    litellm_params: { model: bedrock/arn:aws:bedrock:us-west-2::foundation-model/cohere.rerank-v3-5:0, aws_region_name: us-west-2 }
+    model_info: { mode: rerank }
+litellm_settings: { drop_params: true, num_retries: 3 }
+general_settings: { master_key: os.environ/LITELLM_MASTER_KEY }

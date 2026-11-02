@@ -1,0 +1,26 @@
+[project]
+name = "graphiti-agent-memory-cn"
+version = "0.1.0"
+description = "Graphiti agent memory on Amazon Neptune for AWS China regions, model-agnostic via LiteLLM proxy"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "graphiti-core[neptune]==0.31.2",
+    "opensearch-py==3.2.0",
+    "boto3==1.43.119",
+    "httpx==0.28.1",
+    "python-dotenv==1.2.4",
+    "strands-agents[openai]==1.62.0",
+    "streamlit==1.66.1",
+    "mcp[cli]==1.30.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest==9.1.1", "pytest-asyncio==1.4.1"]
+infra = ["aws-cdk-lib==2.275.0", "constructs==10.8.1"]
+# Local e2e check without Neptune (scripts/testing/e2e_gateway_local.py)
+local = ["graphiti-core[falkordb]==0.31.2", "falkordblite==0.11.0", "litellm[proxy]==1.102.4"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

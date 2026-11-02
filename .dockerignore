@@ -1,0 +1,7 @@
+.venv
+.env
+infra
+tests
+scripts/testing
+**/__pycache__
+**/cdk.out

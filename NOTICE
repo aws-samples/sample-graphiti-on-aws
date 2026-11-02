@@ -1,0 +1,8 @@
+Graphiti Agent Memory on AWS China Regions
+Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+Portions of this sample are adapted from aws-samples/amazon-neptune-generative-ai-samples
+(solutions/agent-memory), Copyright Amazon.com, Inc. or its affiliates, licensed under MIT-0.
+
+This sample does not bundle third-party source code. It declares third-party Python packages
+and container images as dependencies; see THIRD-PARTY-LICENSES.

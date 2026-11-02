@@ -1,0 +1,49 @@
+This sample does not vendor or redistribute third-party source code, datasets or model weights.
+It declares the following third-party components as dependencies. They are downloaded by the
+user at build or deploy time and are governed by their own licenses.
+
+Direct Python dependencies (exact versions in pyproject.toml; full resolved set in requirements.txt)
+---------------------------------------------------------------------------------------------------
+graphiti-core 0.31.2          Apache-2.0      https://github.com/getzep/graphiti
+opensearch-py 3.2.0           Apache-2.0      https://github.com/opensearch-project/opensearch-py
+boto3 1.43.119                Apache-2.0      https://github.com/boto/boto3
+httpx 0.28.1                  BSD-3-Clause    https://github.com/encode/httpx
+python-dotenv 1.2.4           BSD-3-Clause    https://github.com/theskumar/python-dotenv
+strands-agents 1.62.0         Apache-2.0      https://github.com/strands-agents/harness-sdk
+streamlit 1.66.1              Apache-2.0      https://github.com/streamlit/streamlit
+mcp 1.30.0                    MIT             https://github.com/modelcontextprotocol/python-sdk
+
+Infrastructure and test-only Python dependencies (optional extras in pyproject.toml)
+---------------------------------------------------------------------------------------------------
+aws-cdk-lib 2.275.0           Apache-2.0      https://github.com/aws/aws-cdk
+constructs 10.8.1             Apache-2.0      https://github.com/aws/constructs
+pytest 9.1.1                  MIT             https://github.com/pytest-dev/pytest
+pytest-asyncio 1.4.1          Apache-2.0      https://github.com/pytest-dev/pytest-asyncio
+falkordblite 0.11.0           BSD-3-Clause    https://github.com/FalkorDB/falkordblite
+                              Test-only (local e2e); not in requirements.txt or the runtime image.
+                              The wheel bundles Redis server/CLI binaries (redis-server 8.10.2 per
+                              redislite/package_metadata.json) and the FalkorDB module binary
+                              (falkordb.so). The FalkorDB module has its own license (see
+                              https://github.com/FalkorDB/FalkorDB); for the bundled Redis binaries
+                              see the package's LICENSE.txt and https://github.com/redis/redis.
+litellm 1.102.4               MIT (excluding the separately licensed enterprise/ directory)
+                                              https://github.com/BerriAI/litellm
+
+Transitive dependencies
+---------------------------------------------------------------------------------------------------
+The resolved runtime set in requirements.txt contains about 100 packages. Their licenses are
+permissive (Apache-2.0, MIT, BSD, ISC, PSF-2.0, MIT-CMU, 0BSD, Zlib, CC0-1.0), except that
+three packages contain MPL-2.0 (weak copyleft) code: certifi (MPL-2.0), orjson
+(MPL-2.0 AND (Apache-2.0 OR MIT)) and tqdm (MPL-2.0 AND MIT). They are used unmodified.
+No GPL, LGPL or AGPL licensed packages are included.
+
+Container images (pulled and mirrored by the user; not redistributed by this sample)
+---------------------------------------------------------------------------------------------------
+ghcr.io/berriai/litellm       MIT (excluding enterprise/)  https://github.com/BerriAI/litellm
+python:3.12-slim              PSF-2.0 and the licenses of the Debian packages it contains
+                                              https://hub.docker.com/_/python
+
+Third-party model APIs (configured by the user in litellm/config.yaml)
+---------------------------------------------------------------------------------------------------
+The sample's default configuration references DeepSeek and Alibaba Cloud Model Studio (DashScope)
+APIs. Using them requires your own account and is subject to each provider's terms of service.
